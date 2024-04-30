@@ -17,7 +17,7 @@ cargo build
 
 ## Example
 
-Given a file `hello_world.txt` with the following line: `Hello, World!` we, for example, can search for the word: `Word`: 
+Given a file `hello_world.txt` with the following line: `Hello, World!` we, for example, can search for the word: `World`: 
 
 <img src="images/example.png" alt="example">
 
