@@ -46,7 +46,7 @@ impl Config {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct MatchingLine {
     pub parts: Vec<String>,
     pub pattern: String,
