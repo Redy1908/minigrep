@@ -1,4 +1,4 @@
-# A (a lot) simple implementation of the command *grep* in Rust
+# A (a lot) simple implementation of the *grep* command in Rust
 
 Returns the lines that contains the *query*
 
