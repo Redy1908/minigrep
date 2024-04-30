@@ -17,10 +17,10 @@ cargo build
 
 ## Example
 
-Given a file `hello_world.txt` with the following line: `Hello, World!` we, for example, can search for the word: `World`: 
+Given a file `test.txt` with the following line: `Hello, World!` we, for example, can search for the word: `World`: 
 
 <img src="images/example.png" alt="example">
 
-Case insensitive:
+Minigrep by default will use case sensitive matching, you can enable case insensitive matching with the param `-i` (ignore case).
 
-<img src="images/example1.png" alt="example 1">
+Minigrep can also dysplay the line numbers, use the param `-n`.
