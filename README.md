@@ -10,4 +10,4 @@ Returns the lines that contains the *query*
 
 ## Example
 
-<img src="images/example.png" alt="example>
+<img src="images/example.png" alt="example">
