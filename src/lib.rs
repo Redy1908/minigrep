@@ -1,4 +1,3 @@
-extern crate getopts;
 use colored::Colorize;
 use getopts::Options;
 use std::error::Error;
