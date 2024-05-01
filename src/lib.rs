@@ -52,8 +52,10 @@ impl Config {
 
 #[derive(Default)]
 pub struct MatchingLine {
-    pub parts: Vec<String>,
+    pub is_case_insensitive: bool,
     pub pattern: String,
+    pub parts: Vec<String>,
+    pub matches: Vec<String>,
     pub line_number: u32,
 }
 
@@ -82,7 +84,11 @@ fn print_line(line: &MatchingLine) {
         print!("{}", format!("{}", part.white()));
 
         if index != line.parts.len() - 1 {
-            print!("{}", line.pattern.red());
+            if line.is_case_insensitive {
+                print!("{}", line.matches[index].red());
+            } else {
+                print!("{}", line.pattern.red());
+            }
         }
     });
     println!();
@@ -98,7 +104,9 @@ fn search_case_sensitive(pattern: &str, contents: &str) -> Vec<MatchingLine> {
             MatchingLine {
                 line_number: (index + 1) as u32,
                 parts,
+                is_case_insensitive: false,
                 pattern: pattern.to_string(),
+                ..Default::default()
             }
         })
         .collect()
@@ -112,11 +120,13 @@ fn search_case_insensitive(pattern: &str, contents: &str) -> Vec<MatchingLine> {
         .enumerate()
         .map(|(index, line)| {
             let parts = split_line(&line, &pattern_lowercase);
-            let original_pattern = get_original_pattern(&line, &pattern_lowercase);
+            let matches = get_matches(&line, &pattern_lowercase);
             MatchingLine {
                 line_number: (index + 1) as u32,
                 parts,
-                pattern: original_pattern,
+                is_case_insensitive: true,
+                pattern: pattern_lowercase.to_string(),
+                matches,
             }
         })
         .collect()
@@ -137,7 +147,16 @@ fn split_line(line: &str, pattern_lowercase: &str) -> Vec<String> {
     parts
 }
 
-fn get_original_pattern(line: &str, pattern_lowercase: &str) -> String {
-    let start = line.to_lowercase().find(pattern_lowercase).unwrap();
-    line[start..start + pattern_lowercase.len()].to_string()
+fn get_matches(line: &str, pattern_lowercase: &str) -> Vec<String> {
+    let line_lowercase = line.to_lowercase();
+    let mut start = 0;
+    let mut matches = Vec::new();
+
+    while let Some(found_at) = line_lowercase[start..].find(pattern_lowercase) {
+        let found_at = start + found_at;
+        matches.push(line[found_at..found_at + pattern_lowercase.len()].to_string());
+        start = found_at + 1;
+    }
+
+    matches
 }
