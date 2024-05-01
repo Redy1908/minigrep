@@ -29,12 +29,17 @@ impl Config {
         let case_insensitive = matches.opt_present("i").then_some(true).unwrap_or(false);
         let print_line_index = matches.opt_present("n").then_some(true).unwrap_or(false);
 
-        if matches.free.len() != 2 {
-            return Err("Not enough arguments".to_string());
-        }
+        let mut matches = matches.free.into_iter();
 
-        let pattern = matches.free[0].clone();
-        let file_path = matches.free[1].clone();
+        let pattern = match matches.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a pattern string".to_string()),
+        };
+
+        let file_path = match matches.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a file path".to_string()),
+        };
 
         Ok(Config {
             pattern,
@@ -52,81 +57,87 @@ pub struct MatchingLine {
     pub line_number: u32,
 }
 
-impl MatchingLine {
-    fn new(pattern: &str) -> MatchingLine {
-        MatchingLine {
-            pattern: pattern.to_string(),
-            ..Default::default()
-        }
-    }
-}
-
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let contents = fs::read_to_string(config.file_path)?;
+    let contents = fs::read_to_string(&config.file_path)?;
 
-    let lines = if config.case_insensitive {
+    let mathing_lines = if config.case_insensitive {
         search_case_insensitive(&config.pattern, &contents)
     } else {
         search_case_sensitive(&config.pattern, &contents)
     };
 
-    for line in lines.iter() {
+    mathing_lines.iter().for_each(|matching_line| {
         if config.print_line_index {
-            print!("{}", format!("{}:", line.line_number).green())
+            print!("{}", format!("{}:", matching_line.line_number).green());
         }
 
-        for (index, line_part) in line.parts.iter().enumerate() {
-            print!("{}", format!("{}", line_part.white()));
-
-            if index != line.parts.len() - 1 {
-                print!("{}", lines[index].pattern.red());
-            }
-        }
-        println!();
-    }
+        print_line(matching_line);
+    });
 
     Ok(())
 }
 
-pub fn search_case_sensitive(pattern: &str, contents: &str) -> Vec<MatchingLine> {
-    let mut results = Vec::new();
+fn print_line(line: &MatchingLine) {
+    line.parts.iter().enumerate().for_each(|(index, part)| {
+        print!("{}", format!("{}", part.white()));
 
-    for (index, file_line) in contents.lines().enumerate() {
-        let mut matching_line = MatchingLine::new(&pattern);
-
-        let parts: Vec<_> = file_line.split(&pattern).collect();
-
-        if parts.len() > 1 {
-            for part in parts {
-                matching_line.line_number = (index + 1) as u32;
-                matching_line.parts.push(part.to_string());
-            }
-
-            results.push(matching_line);
+        if index != line.parts.len() - 1 {
+            print!("{}", line.pattern.red());
         }
-    }
-
-    results
+    });
+    println!();
 }
 
-pub fn search_case_insensitive(pattern: &str, contents: &str) -> Vec<MatchingLine> {
-    let pattern = pattern.to_lowercase();
-    let mut results = Vec::new();
-
-    for (index, file_line) in contents.to_lowercase().lines().enumerate() {
-        let mut matching_line = MatchingLine::new(&pattern);
-
-        let parts: Vec<_> = file_line.split(&pattern).collect();
-
-        if parts.len() > 1 {
-            for part in parts {
-                matching_line.line_number = (index + 1) as u32;
-                matching_line.parts.push(part.to_string());
+fn search_case_sensitive(pattern: &str, contents: &str) -> Vec<MatchingLine> {
+    contents
+        .lines()
+        .filter(|line| line.contains(pattern))
+        .enumerate()
+        .map(|(index, line)| {
+            let parts = line.split(&pattern).map(String::from).collect();
+            MatchingLine {
+                line_number: (index + 1) as u32,
+                parts,
+                pattern: pattern.to_string(),
             }
+        })
+        .collect()
+}
 
-            results.push(matching_line);
-        }
+fn search_case_insensitive(pattern: &str, contents: &str) -> Vec<MatchingLine> {
+    let pattern_lowercase = pattern.to_lowercase();
+    contents
+        .lines()
+        .filter(|line| line.to_lowercase().contains(&pattern_lowercase))
+        .enumerate()
+        .map(|(index, line)| {
+            let parts = split_line(&line, &pattern_lowercase);
+            let original_pattern = get_original_pattern(&line, &pattern_lowercase);
+            MatchingLine {
+                line_number: (index + 1) as u32,
+                parts,
+                pattern: original_pattern,
+            }
+        })
+        .collect()
+}
+
+fn split_line(line: &str, pattern_lowercase: &str) -> Vec<String> {
+    let mut parts = Vec::new();
+    let mut last_pos = 0;
+    let mut pos = line.to_lowercase().find(pattern_lowercase);
+    while let Some(p) = pos {
+        parts.push(line[last_pos..p].to_string());
+        last_pos = p + pattern_lowercase.len();
+        pos = line.to_lowercase()[last_pos..]
+            .find(pattern_lowercase)
+            .map(|p| p + last_pos);
     }
+    parts.push(line[last_pos..].to_string());
+    parts
+}
 
-    results
+fn get_original_pattern(line: &str, pattern_lowercase: &str) -> String {
+    let start = line.to_lowercase().find(pattern_lowercase).unwrap();
+    line[start..start + pattern_lowercase.len()].to_string()
 }
