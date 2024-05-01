@@ -4,10 +4,24 @@ Returns the lines that contain the specified *pattern*.
 
 ## Build
 
+### Prerequisites
+
+Install Rust and Cargo
+
+Linux:
+
+```sh
+curl https://sh.rustup.rs -sSf | sh
+```
+
+For other OS check the [official documentation](https://www.rust-lang.org/tools/install)
+
 ```sh
 cd minigrep
 cargo build
 ```
+
+The executable will be in `minigrep/target/debug`
 
 ## Usage
 
