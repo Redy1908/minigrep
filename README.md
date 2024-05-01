@@ -1,6 +1,6 @@
-# A (a lot) simple implementation of the *grep* command in Rust
+# A (lot) simple implementation of the *grep* command in Rust
 
-Returns the lines that contains the *query*
+Returns the lines that contain the specified *pattern*.
 
 ## Build
 
@@ -12,7 +12,7 @@ cargo build
 ## Usage
 
 ```sh
-./minigrep {query} {file}
+./minigrep {pattern} {file path}
 ```
 
 ## Example
@@ -23,4 +23,4 @@ Given a file `test.txt` with the following line: `Hello, World!` we, for example
 
 Minigrep by default will use case sensitive matching, you can enable case insensitive matching with the param `-i` (ignore case).
 
-Minigrep can also dysplay the line numbers, use the param `-n`.
+Minigrep can also display the line numbers, use the param `-n`.
