@@ -71,16 +71,16 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         search_case_sensitive(&config.pattern, &contents)
     };
 
-    for i in 0..lines.len() {
+    for line in lines.iter() {
         if config.print_line_index {
-            print!("{}", format!("{}:", lines[i].line_number).green());
+            print!("{}", format!("{}:", line.line_number).green())
         }
 
-        for j in 0..lines[i].parts.len() {
-            print!("{}", lines[i].parts[j].white());
+        for (index, line_part) in line.parts.iter().enumerate() {
+            print!("{}", format!("{}", line_part.white()));
 
-            if j != lines[i].parts.len() - 1 {
-                print!("{}", lines[i].pattern.red());
+            if index != line.parts.len() - 1 {
+                print!("{}", lines[index].pattern.red());
             }
         }
         println!();
